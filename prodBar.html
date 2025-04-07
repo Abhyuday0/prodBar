@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hourglass Tug of War</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f0f0f0;
+      text-align: center;
+    }
+
+    .bar-container {
+      width: 100%;
+      height: 40px;
+      background: #ddd;
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-top: 1rem;
+    }
+
+    .productivity {
+      background-color: #4CAF50;
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .relaxing {
+      background-color: #2196F3;
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .label, .timer {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .hourglass-container {
+      margin: 2rem auto 0;
+      width: 60px;
+      height: 60px;
+      perspective: 600px;
+    }
+
+    .hourglass {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      color: white;
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.4s, transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .prod-mode {
+      background-color: #4CAF50;
+    }
+
+    .relax-mode {
+      background-color: #2196F3;
+    }
+
+    .start-screen {
+      margin-top: 3rem;
+    }
+
+    .start-screen button {
+      font-size: 1rem;
+      padding: 1rem 2rem;
+      margin: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      transition: background 0.3s;
+    }
+
+    .start-productive {
+      background-color: #4CAF50;
+    }
+
+    .start-relaxing {
+      background-color: #2196F3;
+    }
+
+    .end-session {
+      font-size: 1rem;
+      padding: 1rem 2rem;
+      margin-top: 1rem;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .results {
+      margin-top: 2rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .reset-button {
+      font-size: 1rem;
+      padding: 1rem 2rem;
+      margin-top: 1rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Session Timer -->
+  <div class="timer hidden" id="sessionTimer">Session Time: 0 min</div>
+
+  <!-- Productivity Bar -->
+  <div class="bar-container hidden" id="bar">
+    <div class="productivity" id="prodBar" style="width: 100%"></div>
+    <div class="relaxing" id="relaxBar" style="width: 0%"></div>
+  </div>
+
+  <!-- Mode Label -->
+  <div class="label hidden" id="modeLabel">💼 Productivity Mode</div>
+
+  <!-- Hourglass Switch -->
+  <div class="hourglass-container hidden" id="hourglassContainer">
+    <div class="hourglass prod-mode" onclick="toggleMode()" id="hourglass">⏳</div>
+  </div>
+
+  <!-- End Session Button -->
+  <button class="end-session hidden" id="endSessionButton" onclick="endSession()">End Session</button>
+
+  <!-- Results Section -->
+  <div class="results hidden" id="resultsSection">
+    <h3>Session Results</h3>
+    <p id="prodTimeResult">Productivity Time: 0 min</p>
+    <p id="relaxTimeResult">Relaxing Time: 0 min</p>
+    <button class="reset-button" onclick="resetSession()">Reset</button>
+  </div>
+
+  <!-- Start Screen -->
+  <div class="start-screen" id="startScreen">
+    <h2>Start your session:</h2>
+    <button class="start-productive" onclick="startSession('productivity')">💼 Start Productive</button>
+    <button class="start-relaxing" onclick="startSession('relaxing')">🛋️ Start Relaxing</button>
+  </div>
+
+  <script>
+    let prodTime = 0;
+    let relaxTime = 0;
+    let mode = null;
+    let flipped = false;
+    let totalSeconds = 0;
+    let timerInterval = null;
+
+    const prodBar = document.getElementById('prodBar');
+    const relaxBar = document.getElementById('relaxBar');
+    const modeLabel = document.getElementById('modeLabel');
+    const hourglass = document.getElementById('hourglass');
+    const hourglassContainer = document.getElementById('hourglassContainer');
+    const sessionTimer = document.getElementById('sessionTimer');
+    const endSessionButton = document.getElementById('endSessionButton');
+    const resultsSection = document.getElementById('resultsSection');
+    const prodTimeResult = document.getElementById('prodTimeResult');
+    const relaxTimeResult = document.getElementById('relaxTimeResult');
+
+    function startSession(initialMode) {
+      mode = initialMode;
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('bar').classList.remove('hidden');
+      modeLabel.classList.remove('hidden');
+      hourglassContainer.classList.remove('hidden');
+      sessionTimer.classList.remove('hidden');
+      endSessionButton.classList.remove('hidden');
+
+      prodTime = mode === 'productivity' ? 1 : 0;
+      relaxTime = mode === 'relaxing' ? 1 : 0;
+      totalSeconds = 1;
+
+      updateUI();
+      updateBar();
+
+      timerInterval = setInterval(() => {
+        totalSeconds++;
+        if (mode === 'productivity') {
+          prodTime += 1;
+        } else {
+          relaxTime += 1;
+        }
+        updateBar();
+        updateTimer();
+      }, 1000);
+    }
+
+    function toggleMode() {
+      mode = (mode === "productivity") ? "relaxing" : "productivity";
+      flipped = !flipped;
+      hourglass.style.transform = flipped ? "rotateY(180deg)" : "rotateY(0deg)";
+      updateUI();
+    }
+
+    function updateUI() {
+      if (mode === "productivity") {
+        modeLabel.textContent = '💼 Productivity Mode';
+        hourglass.classList.remove('relax-mode');
+        hourglass.classList.add('prod-mode');
+      } else {
+        modeLabel.textContent = '🛋️ Relaxing Mode';
+        hourglass.classList.remove('prod-mode');
+        hourglass.classList.add('relax-mode');
+      }
+    }
+
+    function updateBar() {
+      const total = prodTime + relaxTime;
+      const prodPercent = (prodTime / total) * 100;
+      const relaxPercent = (relaxTime / total) * 100;
+
+      prodBar.style.width = `${prodPercent}%`;
+      relaxBar.style.width = `${relaxPercent}%`;
+    }
+
+    function updateTimer() {
+      let timeDisplay;
+      if (totalSeconds < 3600) {
+        // Display minutes for less than 1 hour
+        timeDisplay = `Session Time: ${Math.round(totalSeconds / 60)} min`;
+      } else {
+        // Display time as decimal hours for more than 1 hour
+        timeDisplay = `Session Time: ${(totalSeconds / 3600).toFixed(2)} hours`;
+      }
+      sessionTimer.textContent = timeDisplay;
+    }
+
+    function endSession() {
+      clearInterval(timerInterval);
+      resultsSection.classList.remove('hidden');
+      prodTimeResult.textContent = `Productivity Time: ${Math.round(prodTime / 60)} min`;
+      relaxTimeResult.textContent = `Relaxing Time: ${Math.round(relaxTime / 60)} min`;
+
+      mode = null;
+      prodTime = 0;
+      relaxTime = 0;
+      totalSeconds = 0;
+      prodBar.style.width = '100%';
+      relaxBar.style.width = '0%';
+      modeLabel.textContent = '';
+      sessionTimer.textContent = 'Session Ended';
+      endSessionButton.classList.add('hidden');
+      hourglass.style.transform = 'rotateY(0deg)';
+    }
+
+    function resetSession() {
+      // Reset all data and interface
+      resultsSection.classList.add('hidden');
+      document.getElementById('startScreen').classList.remove('hidden');
+    }
+  </script>
+
+</body>
+</html>
