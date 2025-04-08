@@ -35,9 +35,25 @@
       transition: width 0.3s;
     }
 
-    .label, .timer {
+    .label, .timer-wrapper {
       margin-top: 1rem;
       font-size: 1.2rem;
+    }
+
+    .timer-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    .timer {
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s, opacity 0.4s ease-in-out;
+    }
+
+    .timer-wrapper:hover .timer {
+      visibility: visible;
+      opacity: 1;
     }
 
     .hourglass-container {
@@ -125,7 +141,10 @@
 </head>
 <body>
 
-  <div class="timer hidden" id="sessionTimer">Session Time: 0 min</div>
+  <div class="timer-wrapper hidden" id="sessionTimerWrapper">
+    Hover to reveal time:
+    <div class="timer" id="sessionTimer">Session Time: 0 min</div>
+  </div>
 
   <div class="bar-container hidden" id="bar">
     <div class="productivity" id="prodBar" style="width: 100%"></div>
@@ -167,6 +186,7 @@
     const hourglass = document.getElementById('hourglass');
     const hourglassContainer = document.getElementById('hourglassContainer');
     const sessionTimer = document.getElementById('sessionTimer');
+    const sessionTimerWrapper = document.getElementById('sessionTimerWrapper');
     const endSessionButton = document.getElementById('endSessionButton');
     const resultsSection = document.getElementById('resultsSection');
     const prodTimeResult = document.getElementById('prodTimeResult');
@@ -178,7 +198,7 @@
       document.getElementById('bar').classList.remove('hidden');
       modeLabel.classList.remove('hidden');
       hourglassContainer.classList.remove('hidden');
-      sessionTimer.classList.remove('hidden');
+      sessionTimerWrapper.classList.remove('hidden');
       endSessionButton.classList.remove('hidden');
 
       prodTime = mode === 'productivity' ? 1 : 0;
@@ -241,8 +261,6 @@
 
     function endSession() {
       clearInterval(timerInterval);
-
-      // Keep the bar and timer as-is
       hourglassContainer.classList.add('hidden');
       modeLabel.classList.add('hidden');
       endSessionButton.classList.add('hidden');
@@ -253,7 +271,6 @@
     }
 
     function resetSession() {
-      // Full reset
       prodTime = 0;
       relaxTime = 0;
       totalSeconds = 0;
@@ -264,7 +281,7 @@
       prodBar.style.width = '100%';
       relaxBar.style.width = '0%';
       sessionTimer.textContent = '';
-      sessionTimer.classList.add('hidden');
+      sessionTimerWrapper.classList.add('hidden');
 
       resultsSection.classList.add('hidden');
       document.getElementById('bar').classList.add('hidden');
