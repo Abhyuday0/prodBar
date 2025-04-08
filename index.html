@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hourglass Tug of War</title>
+  <title>Tipsy Bar</title>
   <style>
     body {
       font-family: sans-serif;
@@ -125,27 +125,21 @@
 </head>
 <body>
 
-  <!-- Session Timer -->
   <div class="timer hidden" id="sessionTimer">Session Time: 0 min</div>
 
-  <!-- Productivity Bar -->
   <div class="bar-container hidden" id="bar">
     <div class="productivity" id="prodBar" style="width: 100%"></div>
     <div class="relaxing" id="relaxBar" style="width: 0%"></div>
   </div>
 
-  <!-- Mode Label -->
   <div class="label hidden" id="modeLabel">💼 Productivity Mode</div>
 
-  <!-- Hourglass Switch -->
   <div class="hourglass-container hidden" id="hourglassContainer">
     <div class="hourglass prod-mode" onclick="toggleMode()" id="hourglass">⏳</div>
   </div>
 
-  <!-- End Session Button -->
   <button class="end-session hidden" id="endSessionButton" onclick="endSession()">End Session</button>
 
-  <!-- Results Section -->
   <div class="results hidden" id="resultsSection">
     <h3>Session Results</h3>
     <p id="prodTimeResult">Productivity Time: 0 min</p>
@@ -153,7 +147,6 @@
     <button class="reset-button" onclick="resetSession()">Reset</button>
   </div>
 
-  <!-- Start Screen -->
   <div class="start-screen" id="startScreen">
     <h2>Start your session:</h2>
     <button class="start-productive" onclick="startSession('productivity')">💼 Start Productive</button>
@@ -194,6 +187,7 @@
 
       updateUI();
       updateBar();
+      updateTimer();
 
       timerInterval = setInterval(() => {
         totalSeconds++;
@@ -238,10 +232,8 @@
     function updateTimer() {
       let timeDisplay;
       if (totalSeconds < 3600) {
-        // Display minutes for less than 1 hour
         timeDisplay = `Session Time: ${Math.round(totalSeconds / 60)} min`;
       } else {
-        // Display time as decimal hours for more than 1 hour
         timeDisplay = `Session Time: ${(totalSeconds / 3600).toFixed(2)} hours`;
       }
       sessionTimer.textContent = timeDisplay;
@@ -249,28 +241,35 @@
 
     function endSession() {
       clearInterval(timerInterval);
+
+      // Keep the bar and timer as-is
+      hourglassContainer.classList.add('hidden');
+      modeLabel.classList.add('hidden');
+      endSessionButton.classList.add('hidden');
+
       resultsSection.classList.remove('hidden');
       prodTimeResult.textContent = `Productivity Time: ${Math.round(prodTime / 60)} min`;
       relaxTimeResult.textContent = `Relaxing Time: ${Math.round(relaxTime / 60)} min`;
-
-      mode = null;
-      prodTime = 0;
-      relaxTime = 0;
-      totalSeconds = 0;
-      prodBar.style.width = '100%';
-      relaxBar.style.width = '0%';
-      modeLabel.textContent = '';
-      sessionTimer.textContent = 'Session Ended';
-      endSessionButton.classList.add('hidden');
-      hourglass.style.transform = 'rotateY(0deg)';
     }
 
     function resetSession() {
-      // Reset all data and interface
+      // Full reset
+      prodTime = 0;
+      relaxTime = 0;
+      totalSeconds = 0;
+      mode = null;
+      flipped = false;
+      clearInterval(timerInterval);
+
+      prodBar.style.width = '100%';
+      relaxBar.style.width = '0%';
+      sessionTimer.textContent = '';
+      sessionTimer.classList.add('hidden');
+
       resultsSection.classList.add('hidden');
+      document.getElementById('bar').classList.add('hidden');
       document.getElementById('startScreen').classList.remove('hidden');
     }
   </script>
-
 </body>
 </html>
